@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>241103_kadai</title>
+    <link rel="stylesheet" href="./css/style.css">
+    <!-- Google Maps API の読み込み -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA6zBn2NVz8-Gf-mpIxes2sM1650_yswhc&callback=initMap&language=ja" async defer></script>
+</head>
+<body>
+    <div id="map">ここに表示</div>
+
+    <ul>
+        <li>lat: <span id="lat"></span></li>
+        <li>lng: <span id="lng"></span></li>
+    </ul>
+
+    <div>
+        <button id="btn">天気教えて</button>
+        <div id="view"></div>
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+    <script>
+        let map;
+        let currentMarker = null;
+        let selectedLat = null;
+        let selectedLng = null;
+        const key = "550405ff20109b23f7877e14c959ee0b";  // OpenWeather APIキー
+
+        function initMap() {
+            const MyLatLng = { lat: 35.6811673, lng: 139.7670516 };
+            const Options = {
+                zoom: 15,
+                center: MyLatLng,
+                mapTypeId: 'roadmap'
+            };
+
+            // マップの初期化
+            map = new google.maps.Map($('#map')[0], Options);
+
+            // 地図をクリックしたときのイベントリスナーを追加
+            map.addListener('click', function(e) {
+                const lat = e.latLng.lat();
+                const lng = e.latLng.lng();
+
+                // 取得した緯度・経度をHTMLに表示
+                $('#lat').text(lat);
+                $('#lng').text(lng);
+
+                // 緯度と経度をグローバル変数に保存
+                selectedLat = lat;
+                selectedLng = lng;
+
+                // 既存のマーカーがある場合は削除
+                if (currentMarker) {
+                    currentMarker.setMap(null);
+                }
+
+                // 新しいマーカーを作成
+                currentMarker = new google.maps.Marker({
+                    position: { lat: lat, lng: lng },
+                    map: map
+                });
+
+                // 地図の中心をクリック位置に移動
+                map.panTo({ lat: lat, lng: lng });
+            });
+        }
+
+        $("#btn").on("click", function() {
+            if (selectedLat === null || selectedLng === null) {
+                alert("地図上で場所をクリックしてください。");
+                return;
+            }   
+            //returnがないとnullでも実行されてしまう。
+
+            const icon = "http://openweathermap.org/img/wn/";
+            const url = `https://api.openweathermap.org/data/2.5/forecast?lat=${selectedLat}&lon=${selectedLng}&appid=${key}&lang=ja`;
+
+            $.ajax({
+                url: url,
+                type: "get",
+                cache: false,
+                dataType: "json"
+            }).done(function(data) {
+                console.log(data);
+                let html = "";
+                for (let i = 0; i < data.list.length; i++) {
+                    html += `
+                        <div>
+                            <div>時刻: ${data.list[i].dt_txt}</div>
+                            <div>風速: ${data.list[i].wind.speed}</div>
+                            <div>天気: ${data.list[i].weather[0].description}</div>
+                            <div>降水確率: ${data.list[i].pop * 100}%</div>
+                            <div><img src="${icon + data.list[i].weather[0].icon}@2x.png"></div>
+                        </div>
+                    `;
+                }
+                $("#view").html(html);
+            });
+        });
+    </script>
+</body>
+</html>
