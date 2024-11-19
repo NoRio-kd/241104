@@ -6,7 +6,7 @@
 - 地図+天気
 
 ## ③アプリのデプロイURL
-デプロイしている場合はURLを記入（任意）
+http://norikikadowaki.sakura.ne.jp/241103_kadai_API/
 
 
 ## ⑤工夫した点・こだわった点
